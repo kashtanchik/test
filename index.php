@@ -5,11 +5,13 @@ require 'classes\curl.php';
 
 class TubeParser {
 
+    public $files;
     private $curl;
     private $dom;
-    public $files;
     
     public function __construct() {
+        set_time_limit(0);
+        
         $this->curl = new Curl();
         $this->dom = new DOMDocument();
         
@@ -52,6 +54,7 @@ class TubeParser {
         $xpath = new DOMXPath($this->dom);
         $expression = "//*[@name='hosting']/option[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '"
             .$site."')]";
+        
         return $xpath->query($expression)->item(0)->getAttribute("value");
     }
            
@@ -75,14 +78,11 @@ class TubeParser {
         $files = array();
         
         foreach ($urls as $url) {
-            //$url = "http://www.filestube.com/rapidshare/fafuAQD4K1tyoAUqiUoxkX/Morteltrf-Subs-BINMoVIE-ORG.html";
             $resp = $this->curl->get($url);
             $this->dom->loadHTML($resp);
             $xpath = new DOMXPath($this->dom);
             
             $file = array();
-//            $t1 = $xpath->query("//div[span[contains(text(), 'Added')]]/text()")->item(0);
-//            $t2 = $t1->getNodePath();
             $file["PageTitle"] = $xpath->query("/html/body/div[2]/div[3]/div[2]/div[1]/h1")
                     ->item(0)
                     ->nodeValue;
@@ -136,7 +136,6 @@ class TubeParser {
     public function save($filename) {
         $f = fopen($filename, 'w');
         
-        // write headers
         $headers = array_keys($this->files[0]);
             fputcsv($f, $headers);
         
